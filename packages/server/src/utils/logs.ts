@@ -1,4 +1,5 @@
 import { open } from "node:fs/promises";
+import { DATE_REGEX } from "./regexes";
 
 export async function getLogs() {
 	const testFilePath = "/var/logs/usermanagerd.log.0";
@@ -9,7 +10,7 @@ export async function getLogs() {
 	for await (const chunk of file.createReadStream()) {
 		const chunkBuf = chunk as Buffer;
 
-		const chunkStr = chunkBuf.toString().split("\n").reverse().join("\n");
+		const chunkStr = chunkBuf.toString().split(DATE_REGEX).reverse().join("");
 
 		fileContentArr.push(chunkStr);
 	}
