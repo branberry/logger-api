@@ -1,8 +1,11 @@
 import Fastify from "fastify";
+import { logRoutes } from "./routes/log-routes";
 
 const fastify = Fastify({
 	logger: true,
 });
+
+fastify.register(logRoutes);
 
 fastify.get("/", (_, reply) => {
 	reply.send({ hello: "world" });
