@@ -3,6 +3,7 @@ import { getLogs } from "../utils/logs";
 
 interface LogQueryParams {
 	file: string;
+	num_entries: string;
 }
 
 export async function logRoutes(
@@ -10,8 +11,11 @@ export async function logRoutes(
 	_options: Record<string, unknown>,
 ) {
 	fastify.get("/logs", async (req, resp) => {
-		const { file } = req.query as LogQueryParams;
-		const logs = await getLogs(file);
+		const { file, num_entries: numEntries } = req.query as LogQueryParams;
+		const logs = await getLogs(
+			file,
+			numEntries ? Number.parseInt(numEntries) : undefined,
+		);
 
 		resp.send(logs);
 	});
