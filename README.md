@@ -35,7 +35,7 @@ The logs are returned in descending order (newest logs appear first).
 To run unit tests, run `pnpm test:server`. This will start the unit tests with `vitest`.
 
 ## file structure
-
+```
 📦packages
  ┗ 📂server
  ┃ ┣ 📂src
@@ -53,7 +53,7 @@ To run unit tests, run `pnpm test:server`. This will start the unit tests with `
  ┃ ┃ ┗ 📜retrieve-logs.test.ts
  ┃ ┣ 📜package.json
  ┃ ┗ 📜tsconfig.json
-
+```
 
 The API endpoint is defined in the `packages/server/src/routes/log-routes.ts` file. This handles validating the GET request, and sending the response back as a stream. This allows for effectively sending large files (>1G) via HTTP. 
 
