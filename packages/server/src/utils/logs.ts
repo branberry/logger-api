@@ -1,48 +1,61 @@
 import { open } from "node:fs/promises";
-import { createInterface } from "node:readline";
+
 import { DATE_REGEX } from "./regexes";
-import { createReadStream } from "node:fs";
+import { read } from "node:fs";
 
-async function streamLogfile(fileName: string) {
-	return new Promise((resolve, reject) => {
-		const fileData: string[] = [];
-		const fileStream = createReadStream(`/var/logs/${fileName}`);
+import { promisify } from "node:util";
 
-		const fileReader = createInterface({
-			input: fileStream,
-			output: process.stdout,
-			terminal: false,
-		});
+const readAsync = promisify(read);
 
-		fileReader.on("line", (data) => {
-			console.log(data);
-			fileData.unshift(data);
-		});
-		fileReader.on("error", (error) =>
-			reject(`An error occurred when reading the file: ${error}`),
+// Max buffer size for the `read` function
+const BUF_SIZE = 2 ** 16;
+
+/**
+ * An async generator function that efficiently reads log files in descending order.
+ * The file is read using node's `read` function, which takes in a pre-defined buffer as input.
+ * It allows for us to read the file in reverse by specifying the position in the file we want to begin with.
+ * @param fileName The path to the log file in `/var/logs/
+ *
+ */
+export async function* getLogs(fileName: string) {
+	const file = await open(fileName);
+	const { size } = await file.stat();
+
+	let totalBytesRead = 0;
+	let remainder = "";
+	while (totalBytesRead < size) {
+		const buffer = Buffer.alloc(Math.min(size - totalBytesRead, BUF_SIZE));
+
+		const { bytesRead } = await readAsync(
+			file.fd,
+			buffer,
+			0,
+			Math.min(size - totalBytesRead, BUF_SIZE),
+			Math.max(0, size - BUF_SIZE - totalBytesRead),
 		);
-		fileReader.on("close", () => {
-			resolve(fileData);
-		});
-	});
-}
-export async function getLogs(fileName: string) {
-	const file = await open(`/var/logs/${fileName}`);
 
-	const fileContentArr = [];
+		totalBytesRead += bytesRead;
 
-	streamLogfile(fileName);
+		const bufferWithRemainder = `${buffer.toString()}${remainder}`;
 
-	// Read file line by line to save on memory.
-	// Instead of reading the whole file, then splitting that into another
-	// array, we can look at each chunk and reverse each chunk by the
-	//
-	for await (const chunk of file.createReadStream()) {
-		const chunkBuf = chunk as Buffer;
+		if (remainder) {
+			// the remainder will be a part of the oldest record in the current buffer.
+			remainder = "";
+		}
+		let logEntries = bufferWithRemainder.split(DATE_REGEX);
 
-		const chunkStr = chunkBuf.toString().split(DATE_REGEX).reverse().join("");
-		fileContentArr.push(chunkStr);
+		if (logEntries.length % 2 === 1) {
+			remainder = logEntries[0];
+
+			logEntries = logEntries.slice(1);
+		}
+
+		for (let i = logEntries.length - 1; i >= 0; i -= 2) {
+			console.log(`${logEntries[i - 1]}${logEntries[i]}`);
+			yield `${logEntries[i - 1]}${logEntries[i]}`;
+		}
+		// yield buffer.toString().split(DATE_REGEX).reverse().join("");
 	}
-
-	return fileContentArr.reverse().join("");
+	console.log(totalBytesRead, size);
+	await file.close();
 }
