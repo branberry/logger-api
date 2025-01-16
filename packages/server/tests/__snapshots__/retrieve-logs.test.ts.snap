@@ -1,10 +1,26 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`usermanagerd.log is parsed and log entries relevant to the search are returned 1`] = `
+exports[`usermanagerd.log is parsed and log entries relevant to the search 'com.apple.searchd.personaobserver' are returned 1`] = `
 "2025-01-14 16:03:31.519503Z [626] (0x16db8b000) Updated Registered machService list is (
     "com.apple.searchd.personaobserver"
 )
 2025-01-14 16:03:31.519442Z [626] (0x16db8b000) Registering PersonaObserver with machService:com.apple.searchd.personaobserver with asid:100019
+"
+`;
+
+exports[`usermanagerd.log is parsed and the first 5 log entries are returned 1`] = `
+"2025-01-14 16:03:31.534514Z [626] (0x16db8b000) Successful Persona Observer registration of machServiceName
+2025-01-14 16:03:31.519503Z [626] (0x16db8b000) Updated Registered machService list is (
+    "com.apple.searchd.personaobserver"
+)
+2025-01-14 16:03:31.519442Z [626] (0x16db8b000) Registering PersonaObserver with machService:com.apple.searchd.personaobserver with asid:100019
+2025-01-14 16:03:28.245759Z [626] (0x16dc17000) Update asid:100019 to UUID String:7A6F7608-148A-4216-82C0-6B055EB52044
+2025-01-14 16:03:28.245723Z [626] (0x16dc17000) Updating AsidMapping with user UUID:7A6F7608-148A-4216-82C0-6B055EB52044 with asid:100019
+"
+`;
+
+exports[`usermanagerd.log is parsed and the first entry that matches the search 'com.apple.searchd.personaobserver' is returned 1`] = `
+"2025-01-14 16:03:31.534514Z [626] (0x16db8b000) Successful Persona Observer registration of machServiceName
 "
 `;
 

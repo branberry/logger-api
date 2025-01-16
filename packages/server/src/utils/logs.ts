@@ -20,7 +20,6 @@ interface RetrieveLogOptions {
  * The file is read using node's `read` function, which takes in a pre-defined buffer as input.
  * It allows for us to read the file in reverse by specifying the position in the file we want to begin with.
  * @param fileName The path to the log file in `/var/logs/`
- *
  */
 export async function* retrieveLogs(
 	fileName: string,
@@ -50,7 +49,10 @@ export async function* retrieveLogs(
 		// For a contrived example to make this concrete: Say we have a file size of 11 bytes and a
 		// buffer size of 2. At the first iteration, the currPosition would be Math.max(0, 11 - 2 - 0) = 9
 		// For the second iteration, we'd have Math.max(0, 11 - 2 - 2) = 7 (the last 2 would be the number of bytes
-		// read previously).
+		// read previously). This would go until we reach the last interation. At that point, we'd have read 10 bytes
+		// total, and so we'd arrive at Math.max(0, 11 - 2 - 10) = Math.max(0, -1) = 0. This would mean we would
+		// start at 0 instead of -1 (which would throw an error, which is never great), and the bufferSize would be 1.
+		// That way, we correctly read only the last part of the file that we have yet to read.
 		const currPosition = Math.max(0, size - BUF_SIZE - totalBytesRead);
 
 		const { bytesRead } = await readAsync(
