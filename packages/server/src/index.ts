@@ -1,6 +1,5 @@
 import Fastify from "fastify";
 import { logRoutes } from "./routes/log-routes";
-import { DATE_REGEX } from "./utils/regexes";
 
 const fastify = Fastify({
 	logger: true,

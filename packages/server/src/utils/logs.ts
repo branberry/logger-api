@@ -1,6 +1,6 @@
 import { open } from "node:fs/promises";
 
-import { DATE_REGEX } from "./regexes";
+import { DATE_REGEX_USER_MANAGER_D, DATE_REGEX_STANDARD } from "./regexes";
 import { read } from "node:fs";
 
 import { promisify } from "node:util";
@@ -10,6 +10,11 @@ const readAsync = promisify(read);
 // Max buffer size for the `read` function
 const BUF_SIZE = 2 ** 16;
 
+interface RetrieveLogOptions {
+	numEntries?: number;
+	searchQuery?: string;
+}
+
 /**
  * An async generator function that efficiently reads log files in descending order.
  * The file is read using node's `read` function, which takes in a pre-defined buffer as input.
@@ -17,7 +22,10 @@ const BUF_SIZE = 2 ** 16;
  * @param fileName The path to the log file in `/var/logs/`
  *
  */
-export async function* getLogs(fileName: string) {
+export async function* retrieveLogs(
+	fileName: string,
+	{ numEntries, searchQuery }: RetrieveLogOptions = {},
+) {
 	const file = await open(fileName);
 
 	// Retrieving the size of the file in bytes. This will
@@ -26,6 +34,7 @@ export async function* getLogs(fileName: string) {
 	const { size } = await file.stat();
 
 	let totalBytesRead = 0;
+	let entriesCount = 0;
 	let remainder = "";
 
 	while (totalBytesRead < size) {
@@ -56,7 +65,15 @@ export async function* getLogs(fileName: string) {
 			// the remainder will be a part of the oldest record in the current buffer.
 			remainder = "";
 		}
-		let logEntries = bufferWithRemainder.split(DATE_REGEX);
+
+		// When testing on my mac, there is a log group called usermanagerd which has a different
+		// log entry date pattern (2024-12-29 00:39:43.168048Z), so I separated the regexes in case this unique log file is read.
+		// The standard regex pattern is (Tue Jan 14 22:04:13 2025)
+		let logEntries = bufferWithRemainder.split(
+			fileName.includes("usermanagerd")
+				? DATE_REGEX_USER_MANAGER_D
+				: DATE_REGEX_STANDARD,
+		);
 
 		if (logEntries.length % 2 === 1) {
 			remainder = logEntries[0];
@@ -65,7 +82,16 @@ export async function* getLogs(fileName: string) {
 		}
 
 		for (let i = logEntries.length - 1; i >= 0; i -= 2) {
-			yield `${logEntries[i - 1]}${logEntries[i]}`;
+			if (numEntries && entriesCount === numEntries) {
+				return;
+			}
+			const logEntry = `${logEntries[i - 1]}${logEntries[i]}`;
+
+			if (searchQuery && !logEntry.includes(searchQuery)) {
+				continue;
+			}
+			yield logEntry;
+			entriesCount += 1;
 		}
 	}
 	await file.close();
