@@ -13,9 +13,21 @@ This project uses [`PNPM Workspaces`](https://pnpm.io/workspaces) for extensibil
 
  To start the server, you can run `pnpm start:server`. Once running, the log API can be accessed locally from `localhost:3000/logs` using a GET request. 
 
-Here's an example query using `cURL`:
+Here's several example queries using `cURL` with various options provided:
+```sh
+curl  -X GET \
+  'localhost:3000/logs?file=usermanagerd.log.0'
+```
+
 
 ```sh
+# limit entries to first 9 
+curl  -X GET \
+  'localhost:3000/logs?file=usermanagerd.log.0&num_entries=9'
+```
+
+```sh
+# limit entries to first 9, and search for entries that contain the string 'hello'
 curl  -X GET \
   'localhost:3000/logs?file=usermanagerd.log.0&num_entries=9&search=hello'
 ```
