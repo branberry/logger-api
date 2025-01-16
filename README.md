@@ -17,7 +17,7 @@ Here's an example query using `cURL`:
 
 ```sh
 curl  -X GET \
-  'localhost:3000/logs?file=usermanagerd.log.0'
+  'localhost:3000/logs?file=usermanagerd.log.0&num_entries=9&search=hello'
 ```
 
 The API has the following query parameters:
