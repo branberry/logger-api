@@ -12,7 +12,9 @@ test("usermanagerd.log is parsed as expected in descending order", async () => {
 
 test("usermanagerd.log is parsed and log entries relevant to the search are returned", async () => {
 	const logs = [];
-	for await (const logGroup of retrieveLogs("./tests/data/usermanagerd.log")) {
+	for await (const logGroup of retrieveLogs("./tests/data/usermanagerd.log", {
+		searchQuery: "com.apple.searchd.personaobserver",
+	})) {
 		logs.push(logGroup);
 	}
 
