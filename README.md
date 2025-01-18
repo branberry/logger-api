@@ -70,3 +70,9 @@ To run unit tests, run `pnpm test:server`. This will start the unit tests with `
 The API endpoint is defined in the `packages/server/src/routes/log-routes.ts` file. This handles validating the GET request, and sending the response back as a stream. This allows for effectively sending large files (>1G) via HTTP. 
 
 The actual logic to read the log file lives in `packages/server/src/utils/logs.ts`. This file contains a function called `retrieveLogs`, which is an async generator function that efficiently reads large log files.
+
+
+## Proof of performance
+
+The server responds in under 30 seconds for a log file >= 1GB
+![alt text](image.png)
